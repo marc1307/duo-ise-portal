@@ -1,24 +1,50 @@
 <html>
     <head>
         <title>Wifi Portal</title>
-         <script src="jquery-3.5.1.min.js"></script> 
-         <script src="portal.js"></script> 
+        <script src="jquery-3.5.1.min.js"></script> 
+        <script src="portal.js"></script>
+        <link rel="stylesheet" href="portal.css">
     </head>
     <body>
-        <h1>Hi there :)</h1>
-        <hr>
-        <div>Please tell me who you are visiting</div>
-        <form action="javascript:;" onsubmit="requestAccess(this)">
-            <input type="text" name="host" id="host">
-            <input type="submit" >
-        </form> 
-        <hr>
-        <ul>
-            <li>ISE Session ID: ---SessionID---</li>
-            <li>Client Mac: ---MAC---</li>
-            <li>Client IP: ---IP4---</li>
-        </ul>
-        <a href="javascript:location.reload(true)">Refresh this page</a>
-        <a href="http://captive.apple.com/hotspot-detect.html">Check Apple</a>
+        <div id="main">
+            <h1 style="width: 100%; text-align: center;">Welcome</h1>
+            <hr>
+            <div class="TAcenter" style="margin-top: 30px;">Please tell me who you are visiting:</div>
+
+            <form action="javascript:;" onsubmit="requestAccess(this)" class="TAcenter">
+                <input type="text" name="host" id="host">
+                <input type="submit">
+            </form>
+
+
+            <div id="authProgress" style="margin: 0 auto; width: 400px; height: 100px; border: 1px dashed black">
+                <span id="authres1"></span><br>
+                <span id="authres2"></span><br>
+                <span id="authres3"></span><br>
+                <span id="authres4"></span><br>
+                <span id="authres5"></span><br>
+            </div>
+        </div>
+        <!-- <div style="margin-top: 25px;">
+            <div id="debug">
+                <a href="javascript:followRedirect()">Follow Redirect</span><br>
+                <a href="javascript:location.reload(true)">Refresh this page</a><br>
+
+                <span class="debugBoxes" id="ise_ses">ISE Session</span>
+                <span class="debugBoxes" id="duo_pre">Duo_Pre</span>
+                <span class="debugBoxes" id="duo_sen">Duo-Sent</span>
+                <span class="debugBoxes" id="duo_res">Duo-RES</span>
+                <span class="debugBoxes" id="ise_eig">ISE-EIG</span>
+                <span class="debugBoxes" id="ise_coa">ISE-COA</span>
+            </div>
+            <div id="debug2">
+                <ul>
+                    <li>ISE Session ID: <span id="SessionID"></span>[SessionID]</li>
+                    <li>Client Mac: <span id="mac">[MAC]</span></li>
+                    <li>Client IP: <spanid id="ip4">[IP]</span></li>
+                </ul>
+                <pre id="detail"></pre>
+            </div>
+        </div> -->
     </body>
 </html>
