@@ -56,7 +56,7 @@ def auth_status(txid):
     # --path /auth/v2/auth_status --method GET txid=69ea7736-2041-4454-83c0-3a0fbb0564fc
     duo = apiClient()
     response = duo.api_call("GET", "/auth/v2/auth_status", {"txid":txid})
-    # print(json.dumps(json.loads(response[1]), indent=4))
+    #print(json.dumps(json.loads(response[1]), indent=4))
     # Req will not be anwsered if status hasn't changed
     return json.loads(response[1])
 

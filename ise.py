@@ -9,7 +9,6 @@ import xml.etree.ElementTree as ET
 
 
 def getSessionInfo(IseSessionId):
-    print(IseSessionId)
     cfg = IseConfig()
     url = "https://{}/admin/API/mnt/Session/ActiveList".format(cfg["host"])
     print(url)
@@ -21,16 +20,14 @@ def getSessionInfo(IseSessionId):
     print(response.text)
 
     for activeSession in root.findall("./activeSession/[audit_session_id='{}']".format(IseSessionId)):
-        print(activeSession)
-        mac = activeSession.find('calling_station_id').text
-        ip4 = activeSession.find('framed_ip_address').text
-        print(mac)
-        print(ip4)
-        print("SES FOUND")
-        return {"mac": mac, "ip4": ip4}
-
-    print('SES NOT FOUND')
-    return {"mac": "not found", "ip4": "not found"}
+        sessionInfo = {
+            "mac": activeSession.find('calling_station_id').text,
+            "framed_ip_address": activeSession.find('framed_ip_address').text,
+            "nas_ip_address": activeSession.find('nas_ip_address').text,
+            "server": activeSession.find('server').text
+        }
+        return sessionInfo
+    return False
     
 def findEndpointByMac(mac):
     cfg = IseConfig()
@@ -61,7 +58,7 @@ def updateEndpointGroup(id):
     data = {
         "ERSEndPoint": {
             "staticGroupAssignment": True,
-            "groupId": "aa178bd0-8bff-11e6-996c-525400b48521"
+            "groupId": cfg["GuestEndpointGroupId"]
         }
     }
     url = "https://{}:9060/ers/config/endpoint/{}".format(cfg["host"], id)
@@ -70,8 +67,28 @@ def updateEndpointGroup(id):
     print(response.text)
     return json.loads(response.text)
 
-def sendCOA(sessionId):
-    print("")
+def sendReauthCoa(server, mac, reauthType="1"):
+    # Doc: https://www.cisco.com/c/en/us/td/docs/security/ise/2-4/api_ref_guide/api_ref_book/ise_api_ref_ch4.pdf
+    # https://acme123/admin/API/mnt/CoA/Reauth/server12/00:26:82:7B:D2:51/1
+    # 
+    cfg = IseConfig()
+    url = "https://{host}/admin/API/mnt/CoA/Reauth/{server}/{mac}/{reauthType}".format(host=cfg["host"],server=server,mac=mac,reauthType=reauthType)
+    response = requests.get(url, auth=HTTPBasicAuth(cfg["username"], cfg["password"]), verify=False)
+    print(response.text)
+    return True
+
+def authorizeGuest(mac):
+    # Get Endpoint ID by Mac
+    search = findEndpointByMac(mac)
+    id = search["SearchResult"]["resources"][0]["id"]
+
+    # Add Endpoint to Guest Endpoint Group
+    endpointUpdateResult = updateEndpointGroup(id)
+
+    return True
+
+
+
 
 if __name__ == '__main__':
     # getSessionInfo('fo')
