@@ -99,6 +99,11 @@ $(document).ready(
             }, 1000)
         }
 
+        // Toggle Passcode Field
+        $('#usePasscode').on('click', function() {
+            $('div#tokenform').slideToggle()
+        }) 
+
 
         // redirect
         qs = getQueryParams(window.location.search)
