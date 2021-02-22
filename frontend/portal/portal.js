@@ -1,5 +1,6 @@
 // Const
-const api_requestAccess = '/api/requestAccess'
+const api_requestAccess         = '/api/requestAccess'
+const api_requestAccessPasscode = '/api/requestAccessPasscode'
 
 // Globals
 
@@ -13,6 +14,7 @@ function requestAccess(e) {
 
     url = api_requestAccess
     if (window.location.protocol !== "file:") {
+        $("#authres1").text("Please wait for approval...")
         $.ajax({
             url: url,
             method: "POST",
@@ -23,6 +25,12 @@ function requestAccess(e) {
         }).done(
             function(data) {
                 console.log(data)
+                if (data.success) {
+                    $("#authProgress").css("background-color", "green")
+                } else {
+                    $("#authProgress").css("background-color", "red")
+                    $("#authres1").text(data.error)
+                }
             }
         )
     } else {

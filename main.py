@@ -115,12 +115,10 @@ def api_requestAccess():
                 session['PreAuth'] = {
                     "success": True,
                     "msg": preauth["response"]["status_msg"],
-
                     "DeviceName": device["display_name"]
                 }
-                
-    # Send Push to Authentication
-                auth = duo.auth_push(username=host, device=device['device'])
+                # Send Push to Authentication
+                auth = duo.auth_push(username=host, device=device['device'], mac=session['ISE']['mac'])
                 try: 
                     txid=auth["response"]["txid"]
                 except KeyError:
@@ -134,8 +132,7 @@ def api_requestAccess():
                         "txid": True
                     }
 
-
-    # Check Status of Push
+                # Check Status of Push
                 StopLoop = False
                 session["AuthStatus"] = {}
                 while(not StopLoop):
@@ -169,18 +166,17 @@ def api_requestAccess():
                     return Response(apiResponseSuccess({}), mimetype='application/json')
                 else:
                     return Response(apiResponseError("rejected"), mimetype='application/json')
-
             else:
-                return Response(apiResponseError("no push capable phone"), mimetype='application/json')
+                return Response(apiResponseError("No Push capable device found - please use passcode"), mimetype='application/json')
         else:
-            return Response(apiResponseError, mimetype='application/json')
+            return Response(apiResponseError("No Phone found - please use passcode"), mimetype='application/json')
 
 
     return "sending push to {}".format("tbd")
 
 @app.route('/')
 def hello():
-    return 'Hello, World!'
+    return 'Ready to rock :)'
 
 
 

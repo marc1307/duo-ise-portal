@@ -20,12 +20,15 @@ def getSessionInfo(IseSessionId):
     print(response.text)
 
     for activeSession in root.findall("./activeSession/[audit_session_id='{}']".format(IseSessionId)):
-        sessionInfo = {
+        try:
+            sessionInfo = {
             "mac": activeSession.find('calling_station_id').text,
             "framed_ip_address": activeSession.find('framed_ip_address').text,
             "nas_ip_address": activeSession.find('nas_ip_address').text,
             "server": activeSession.find('server').text
         }
+        except:
+            return False
         return sessionInfo
     return False
     

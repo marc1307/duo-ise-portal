@@ -12,7 +12,6 @@ def apiClient():
 
 def ping():
     duo = apiClient()
-    
 
 def check():
     # --path /auth/v2/check --method GET
