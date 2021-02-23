@@ -11,13 +11,11 @@ import xml.etree.ElementTree as ET
 def getSessionInfo(IseSessionId):
     cfg = IseConfig()
     url = "https://{}/admin/API/mnt/Session/ActiveList".format(cfg["host"])
-    print(url)
     response = requests.get(url, auth=HTTPBasicAuth(cfg["username"], cfg["password"]), verify=False)
 
     #tree = ET.parse('_notes/ise-mnt/2clients.xml')
     #root = tree.getroot()
     root = ET.fromstring(response.text)
-    print(response.text)
 
     for activeSession in root.findall("./activeSession/[audit_session_id='{}']".format(IseSessionId)):
         try:
@@ -66,8 +64,6 @@ def updateEndpointGroup(id):
     }
     url = "https://{}:9060/ers/config/endpoint/{}".format(cfg["host"], id)
     response = requests.put(url, auth=HTTPBasicAuth(cfg["username"], cfg["password"]), headers=headers, data=json.dumps(data), verify=False)
-
-    print(response.text)
     return json.loads(response.text)
 
 def sendReauthCoa(server, mac, reauthType="1"):

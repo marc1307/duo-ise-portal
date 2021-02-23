@@ -1,5 +1,6 @@
 from flask import Flask, session, Response
 from flask import request
+from flask_socketio import SocketIO, emit
 
 import json, time
 
@@ -7,191 +8,158 @@ import ise, duo
 
 app = Flask(__name__)
 app.secret_key = 'asdffa'
+io = SocketIO(app, cors_allowed_origins="https://wifi.schatten-it.org:8443")
+
+
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 @app.route('/portal/gateway', methods=['GET'])
 def portal():
     with open('frontend/portal/index.html','r') as file:
         index = file.read()
     
-    sessionId = request.args.get('sessionId', default = 'na', type = str)
-    session['sessionId'] = sessionId
+    # sessionId = request.args.get('sessionId', default = 'na', type = str)
+    # session['sessionId'] = sessionId
     
-    session['status'] = "new"
-    
-    try:
-        type(session['detail'])
-    except KeyError:
-        print("session['detail'] KeyError")
-        session['detail'] = initSession()
+    # try:
+    #     type(session['detail'])
+    # except KeyError:
+    #     print("session['detail'] KeyError")
+    #     session['detail'] = initSession()
 
 
-    IseSessionNotFound = True
-    while (IseSessionNotFound):
-        sessionInfo = ise.getSessionInfo(sessionId)
-        if sessionInfo != False:
-            IseSessionNotFound = False
-            session['foundIseSession'] = True
-            print("------session['foundIseSession'] -> {}".format(session['foundIseSession']))
-            session['ISE'] = sessionInfo
-        else:
-            time.sleep(1)
+    # IseSessionNotFound = True
+    # while (IseSessionNotFound):
+    #     sessionInfo = ise.getSessionInfo(sessionId)
+    #     if sessionInfo != False:
+    #         IseSessionNotFound = False
+    #         session['foundIseSession'] = True
+    #         print("------session['foundIseSession'] -> {}".format(session['foundIseSession']))
+    #         session['ISE'] = sessionInfo
+    #     else:
+    #         time.sleep(1)
 
     return index
 
 @app.route('/portal/<resource>')
 def webapp(resource):
     requestedFile = "frontend/portal/{}".format(resource)
+    
+    mimetypes = {
+        "js": "application/javascript",
+        "css": "text/css"
+    }
+
+    fileExtension = str(resource).rsplit(".",1)[1]
+        
     file = open(requestedFile,"r")
     if file.mode == 'r':                            # Da fehlt noch nee Prüfung ob das File exisiert
         fileContent = file.read()
-        return fileContent                          # Mimetype müsste man auch noch setzen, wenns geht
+        if fileExtension in mimetypes:
+            return Response(fileContent, mimetype=mimetypes[fileExtension])
+        else:
+            return Response(fileContent)                          # Mimetype müsste man auch noch setzen, wenns geht
     else:
         return "kaputt"
 
-@app.route('/api/status')
-def api_status():
-    status = {
-        "status": session["status"],
-        "detail": session["detail"]
-    }
-    # ISE Status
-    try:
-        status["ISE"] = session['ISE']
-    except:
-        status["ISE"] = False
 
-    # PreAuth Status
-    try:
-        status["PreAuth"] = session['PreAuth']
-    except:
-        status["PreAuth"] = False
-
-    # Auth Status
-    try:
-        status["Auth"] = session['Auth']
-    except:
-        status["Auth"] = False
-
-    # Auth Status Status
-    try:
-        status["AuthStatus"] = session['AuthStatus']
-    except:
-        status["AuthStatus"] = False
-
-    response = apiResponseSuccess(status)
-    return Response(response, mimetype='application/json')
-
-@app.route('/api/auth/preAuth')
-def api_auth_preauth(methods=['POST']):
-    return ""
+@io.on("connect")
+def ws_connect():
+    session['socketsid'] = request.sid
+    io.emit("connected", room=session['socketsid'])
+    print("websocket connected (ID: {})".format(request.sid))
+    io.emit("debug", request.sid, room=session['socketsid'])
 
 
-@app.route('/api/requestAccess', methods=['POST'])
-def api_requestAccess():
-    print("Post Data:")
-    print(request.form)
-
-    data = request.form
-    host = data["host"]
-
-    session['PreAuth'] = False
-
-    preauth = duo.preauth(username=host)
-    print(preauth)
-    session["status"] = "preauth"
-    if preauth["response"]["result"] == "deny":
-        session['PreAuth'] = {
-            "success": False,
-            "msg": preauth["response"]['status_msg']
-        }
-        return apiResponseError(preauth["response"]['status_msg'])
-
-    # select device
-    print(json.dumps(preauth, indent=4))
-    for device in preauth["response"]["devices"]:
-        if device["type"] == "phone":
-            if 'push' in device["capabilities"]:
-                print("sending push to {}".format(device["display_name"]))
-                session['PreAuth'] = {
-                    "success": True,
-                    "msg": preauth["response"]["status_msg"],
-                    "DeviceName": device["display_name"]
-                }
-                # Send Push to Authentication
-                auth = duo.auth_push(username=host, device=device['device'], mac=session['ISE']['mac'])
-                try: 
-                    txid=auth["response"]["txid"]
-                except KeyError:
-                    session['Auth'] = {
-                        "success": False
-                    }
-                else:
-                    session['Auth'] = {
-                        "success": True,
-                        "type": "Push",
-                        "txid": True
-                    }
-
-                # Check Status of Push
-                StopLoop = False
-                session["AuthStatus"] = {}
-                while(not StopLoop):
-                    r = duo.auth_status(txid)
-                    print(r)
-                    session["AuthStatus"]['result'] = r['response']['result']
-                    if (r['response']['result'] != "waiting"):
-                        StopLoop = True
-                        if (r['response']['result'] == "allow"):
-                            session["AuthStatus"] = {
-                                "success": True,
-                                "status": r['response']['result'],
-                                "msg": r['response']['status_msg']
-                            }
-                            permit=True                            
-                        else:
-                            session["AuthStatus"] = {
-                                "success": False,
-                                "status": r['response']['status'],
-                                "msg": r['response']['status_msg']
-                            }
-                            permit=False
-                    else:
-                        print("Request Allowed ({} -> {})".format(r['response']['status'], r['response']['status_msg']))
-
-                if (permit):
-                    if ise.authorizeGuest(session['ISE']['mac']):
-                        session['detail']['IseEigSet'] = True
-                        if ise.sendReauthCoa(server=session['ISE']['server'], mac=session['ISE']['mac']):
-                            session['detail']['IseCoaSent'] = True
-                    return Response(apiResponseSuccess({}), mimetype='application/json')
-                else:
-                    return Response(apiResponseError("rejected"), mimetype='application/json')
-            else:
-                return Response(apiResponseError("No Push capable device found - please use passcode"), mimetype='application/json')
+@io.on('init') # Send ISE Session ID
+def handle_init(data):
+    # Regex for valid session ID /[0-9a-f]{24}/
+    print('init - received id: ' + data)
+    sessionId = data
+    IseSessionNotFound = True
+    i = 0
+    while (IseSessionNotFound and i < 10):
+        sessionInfo = ise.getSessionInfo(sessionId)
+        if sessionInfo != False:
+            IseSessionNotFound = False
+            session['foundIseSession'] = True
+            print("------session['foundIseSession'] -> {}".format(session['foundIseSession']))
+            session['ISE'] = sessionInfo
+            io.emit("init", {"IseSessionFound": True}, room=session['socketsid'])
+            io.emit("debug", {"data": {"iseSessionData": sessionInfo}}, room=session['socketsid'])
         else:
-            return Response(apiResponseError("No Phone found - please use passcode"), mimetype='application/json')
+            i = i+1
+            io.emit("init", {"IseSessionFound": False}, room=session['socketsid'])
+            time.sleep(1)
+
+@io.on('auth') # Send ISE Session ID
+def handle_auth(data):
+    print('auth - received host: ' + data)
+    
+    host = data ###### sanatize me
 
 
-    return "sending push to {}".format("tbd")
+    # Do Preauth
+    preauth = duo.preauth(username=host)
+    print(json.dumps(preauth, indent=4))
+    if preauth["response"]["result"] == "deny":
+        io.emit('auth', {"module": "preauth", "success": False, "msg": preauth["response"]['status_msg']}, room=session['socketsid'])
+    else:
+        io.emit('auth', {"module": "preauth", "success": True}, room=session['socketsid'])
+        # Search for pushable phone
+        for device in preauth["response"]["devices"]:
+            if device["type"] == "phone":
+                if 'push' in device["capabilities"]:
+                    # Send Push to Authentication
+                    io.emit('auth', {"module": "preauth2", "success": True, "device": device['display_name']}, room=session['socketsid'])
+                    auth = duo.auth_push(username=host, device=device['device'], mac=session['ISE']['mac'])
+                    try: 
+                        txid=auth["response"]["txid"]
+                    except KeyError:
+                        io.emit('auth', {"module": "auth", "success": False, "txid": False}, room=session['socketsid'])
+                    else:
+                        io.emit('auth', {"module": "auth", "success": True, "txid": True}, room=session['socketsid'])
+
+                        StopLoop = False
+                        session["AuthStatus"] = {}
+                        while(not StopLoop):
+                            r = duo.auth_status(txid)
+                            print(r)
+                            session["AuthStatus"]['result'] = r['response']['result']
+                            io.emit('auth', {"module": "auth_status", 
+                            "success": True, "state": r['response']['result'], "msg": r['response']['status_msg']}, room=session['socketsid'])
+                            if (r['response']['result'] != "waiting"):
+                                StopLoop = True
+                                if (r['response']['result'] == "allow"):
+                                    if ise.authorizeGuest(session['ISE']['mac']):
+                                        io.emit('auth', {"module": "ise-addEig", "success": True}, room=session['socketsid'])
+                                        if ise.sendReauthCoa(server=session['ISE']['server'], mac=session['ISE']['mac']):
+                                            io.emit('auth', {"module": "ise-coa", "success": True}, room=session['socketsid'])
+                                    else:
+                                        io.emit('auth', {"module": "ise-addEig", "success": False}, room=session['socketsid'])
+                            else:
+                                print("Request Allowed ({} -> {})".format(r['response']['status'], r['response']['status_msg']))
+            
+                        
+                            
+
+
+
+
+
+
+
+def emitStatus(event, module, msg=""):
+    io.emit(event, {"success": True, "module": module, "msg": msg}, room=session['socketsid'])
+
+def emitError(event, msg):
+    io.emit(event, {"success": False, "error": msg}, room=session['socketsid'])
 
 @app.route('/')
 def hello():
     return 'Ready to rock :)'
-
-
-
-def initSession():
-    template = {
-        "foundIseSession": False,
-        "preAuth": False,
-        "push-sent": False,
-        "push-wating": False,
-        "push-allow": False,
-        "push-deny": False,
-        "IseEigSet": False,
-        "IseCoaSent": False
-    }
-    return template
 
 def apiResponseSuccess(data):
     if (type(data) == dict):
