@@ -5,15 +5,15 @@ from flask_socketio import SocketIO, emit
 import json, time
 
 import ise, duo
+from config import BaseConfig
 
+config = BaseConfig()
 app = Flask(__name__)
-app.secret_key = 'asdffa'
-io = SocketIO(app, cors_allowed_origins="https://wifi.schatten-it.org:8443")
+app.secret_key = config['secret']
+io = SocketIO(app, cors_allowed_origins=config['url'])
 
-
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+# import urllib3
+# urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 @app.route('/portal/gateway', methods=['GET'])
 def portal():
