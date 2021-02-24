@@ -67,13 +67,19 @@ $(document).ready(
 
             if (msg.module === "preauth") {
                 if (msg.success) {
-                    $("#authres1").text("Please wait") 
+                    if (msg.count.phone > 0) {
+                        $("#authres1").text("Please wait")
+                    } else {
+                        $("#authres1").text("Please enter passcode below:")
+                    }
+                    $('input#passcode').val("")
+                    $('#passcodeSection').slideDown()
                 } else {
                     $("#authres1").text(msg.msg)
                     $("#authProgress").css("background-color", "red")
                     $submit.prop('disabled', false)
                 }
-            } 
+            }
 
             if (msg.module === "preauth2") {
                 if (msg.success) {
@@ -110,7 +116,6 @@ $(document).ready(
                 }
             }
 
-
             if (msg.module === "ise-coa" && msg.success) {
                 setTimeout(function() {
                     followRedirect()
@@ -129,6 +134,14 @@ $(document).ready(
             console.log("SessionID: "+sessionId)
             console.log("Host: "+host)
             socket.emit('auth', host)
+        })
+
+        // Auth Request Passcode
+        $('#passcodeRequest').submit(function( event ) {
+            event.preventDefault();
+            passcode = $('input#passcode')[0].value
+            console.log("Passcode: "+passcode)
+            socket.emit('auth_passcode', passcode)
         })
 
 
