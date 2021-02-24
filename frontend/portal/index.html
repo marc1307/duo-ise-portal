@@ -2,6 +2,7 @@
     <head>
         <title>Wifi Portal</title>
         <script src="jquery-3.5.1.min.js"></script> 
+        <script src="socket.io.min.js"></script>
         <script src="portal.js"></script>
         <link rel="stylesheet" href="portal.css">
 
@@ -13,31 +14,28 @@
             <hr>
             <div class="TAcenter" style="margin-top: 30px;">Please tell me who you are visiting:</div>
 
-            <form action="javascript:;" onsubmit="requestAccess(this)" class="TAcenter">
+            <form action="javascript:;" id="authRequest" class="TAcenter">
                 <input type="text" name="host" id="host" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" required>
-                <input type="submit">
+                <input id="host_submit" type="submit" disabled>
             </form>
 
-
-            <div id="authProgress" style="margin: 0 5px; height: 100px; border: 1px dashed black">
-                <span id="authres1"></span><br>
-                <span id="authres2"></span><br>
-                <span id="authres3"></span><br>
-                <span id="authres4"></span><br>
-                <span id="authres5"></span><br>
+            <div id="authProgress" style="margin: 0 auto; height: 100px; border: 1px dashed black; max-width: 400px;">
+                <span id="authres1" class="authres"></span><br>
+                <span id="authres2" class="authres"></span><br>
+                <span id="authres3" class="authres"></span><br>
+                <span id="authres4" class="authres"></span><br>
+                <span id="authres5" class="authres"></span><br>
             </div>
             <br>
             <div id="passcodeSection" style="display: none;">
-                <div id="usePasscode" class="TAcenter">
-                    Click here to use a passcode
-                </div>
-                <div id="tokenform" class="TAcenter" style="display: none;">
-                    <form action="javascript:;">
-                        <input type="text" placeholder="Passcode">
+                <div id="tokenform" class="TAcenter">
+                    <form action="javascript:;" id="passcodeRequest">
+                        <input id="passcode" type="text" placeholder="Passcode">
                         <input type="submit">
                     </form>
                 </div>
             </div>
+            <textarea id="debug" style="width: 100%; height: 250px; overflow:hidden; overflow-wrap: normal; display: none;"></textarea>
             <br>
         </div>
     </body>
