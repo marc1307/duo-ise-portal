@@ -42,7 +42,7 @@ def auth(username, device, factor="push", ipaddr="127.0.0.1"):
 def auth_push(username, device, factor="push", ipaddr="", type="", display_username="New Guest", mac="---TBD---", vendor="---TBD---"):
     # --path /auth/v2/auth --method POST username=marc device=xyc factor=push ipaddr=1.3.3.7 async=1
     duo = apiClient()
-    response = duo.api_call("POST", "/auth/v2/auth", {"username":username,"device":device,"factor":factor,"ipaddr":ipaddr,"async":"1","display_username":"{}".format(display_username),"pushinfo":"MAC={}&Venor={}".format(mac, vendor),"type":"WiFi Access Request"})
+    response = duo.api_call("POST", "/auth/v2/auth", {"username":username,"device":device,"factor":factor,"ipaddr":ipaddr,"async":"1","display_username":"{}".format(display_username),"pushinfo":"MAC={}".format(mac),"type":"WiFi Access Request"})
     return json.loads(response[1])
 
 def auth_passcode(username, passcode, factor="passcode", ipaddr=""):
