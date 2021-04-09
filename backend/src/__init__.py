@@ -21,13 +21,13 @@ io = SocketIO(app, cors_allowed_origins=config['url'])
 
 @app.route('/portal/gateway', methods=['GET'])
 def portal():
-    with open('frontend/portal/index.html','r') as file:
+    with open('../frontend/portal/index.html','r') as file:
         index = file.read()
     return index
 
 @app.route('/portal/<resource>')
 def webapp(resource):
-    requestedFile = "frontend/portal/{}".format(resource)
+    requestedFile = "../frontend/portal/{}".format(resource)
     
     mimetypes = {
         "js": "application/javascript",
