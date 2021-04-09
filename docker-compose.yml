@@ -5,6 +5,8 @@ services:
     build: ./backend
     container_name: backend
     restart: always
+    volumes:
+      - ./config.ini.prod:/app/config.ini:ro
     expose: 
       - 8080
 
