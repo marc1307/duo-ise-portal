@@ -2,17 +2,15 @@ version: '3.7'
 
 services:
   backend:
-    build: ./backend
     image: marc1307/duo-ise-portal-backend
     container_name: backend
     restart: always
     volumes:
-      - ./config.ini.prod:/app/config.ini:ro
+      - ./config.ini:/app/config.ini:ro
     expose: 
       - 8080
 
   frontend:
-    build: ./frontend
     image: marc1307/duo-ise-portal-frontend
     container_name: frontend
     restart: always
