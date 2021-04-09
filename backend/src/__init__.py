@@ -2,10 +2,14 @@ from flask import Flask, session, Response
 from flask import request
 from flask_socketio import SocketIO, emit
 
-import json, time
+import json, time, os, sys
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 
 import ise, duo
 from config import BaseConfig
+
+
 
 config = BaseConfig()
 app = Flask(__name__)
