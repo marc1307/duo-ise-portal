@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   backend:
-    image: marc1307/duo-ise-portal-backend
+    image: ghcr.io/marc1307/duo-ise-portal-backend:main
     container_name: backend
     restart: always
     volumes:
@@ -11,7 +11,7 @@ services:
       - 8080
 
   frontend:
-    image: marc1307/duo-ise-portal-frontend
+    image: ghcr.io/marc1307/duo-ise-portal-frontend:main
     container_name: frontend
     restart: always
     depends_on: 
