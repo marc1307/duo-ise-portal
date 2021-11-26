@@ -34,7 +34,7 @@ def getSessionInfo(IseSessionId):
 def findEndpointByMac(mac):
     cfg = IseConfig()
     url = "https://{}:9060/ers/config/endpoint?filter=mac.EQ.{}".format(cfg["host"], mac)
-    cprint("URL: "+url, "red")
+    cprint("findEndpointByMac(): URL: "+url, "red")
     headers = {
         "Accept": "application/json"
     }
@@ -48,11 +48,31 @@ def getEndpointById(id):
     }
     url = "https://{}:9060/ers/config/endpoint/{}".format(cfg["host"], id)
     response = requests.get(url, auth=HTTPBasicAuth(cfg["username"], cfg["password"]), headers=headers, verify=False)
-    cprint("getEndpointById(): "+response.status_code, "red")
+    cprint("getEndpointById(): "+str(response.status_code), "red")
     return response.text
+
+def getEndpointGroupId(IseEndpointGroupName):
+    cfg = IseConfig()
+    headers = {
+        "Accept": "application/json"
+    }
+    if IseEndpointGroupName == "":
+        cprint("getEndpointGroupId(): EPG-Name not set using 'GuestEndpoints'", "red")
+        IseEndpointGroupName = "GuestEndpoints"    # System default ISE Group
+    url = "https://{}:9060/ers/config/endpointgroup/name/{}".format(cfg["host"], IseEndpointGroupName)
+    response = requests.get(url, auth=HTTPBasicAuth(cfg["username"], cfg["password"]), headers=headers, verify=False)
+    data = json.loads(response.text)
+    cprint("getEndpointGroupId(): "+str(response.status_code)+": {}".format(data['EndPointGroup']['id']), "red")
+    return data['EndPointGroup']['id']
+
 
 def updateEndpointGroup(id):
     cfg = IseConfig()
+    if cfg["guestEndpointGroupId"] == "":
+        cprint("updateEndpointGroup(): ISE EGP-Id not set. Requesting...", "red")
+        cfg["guestEndpointGroupId"] = getEndpointGroupId(cfg['guestEndpointGroup'])
+    cprint("updateEndpointGroup(): Using ISE EPG with id: {}".format(cfg["guestEndpointGroupId"]), "red")
+
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json"
@@ -60,7 +80,7 @@ def updateEndpointGroup(id):
     data = {
         "ERSEndPoint": {
             "staticGroupAssignment": True,
-            "groupId": cfg["GuestEndpointGroupId"]
+            "groupId": cfg["guestEndpointGroupId"]
         }
     }
     url = "https://{}:9060/ers/config/endpoint/{}".format(cfg["host"], id)
@@ -74,7 +94,7 @@ def sendReauthCoa(server, mac, reauthType="1"):
     cfg = IseConfig()
     url = "https://{host}/admin/API/mnt/CoA/Reauth/{server}/{mac}/{reauthType}".format(host=cfg["host"],server=server,mac=mac,reauthType=reauthType)
     response = requests.get(url, auth=HTTPBasicAuth(cfg["username"], cfg["password"]), verify=False)
-    cprint(response.text, "red")
+    cprint("sendReauthCoa(): "+response.text, "red")
     return True
 
 def authorizeGuest(mac):
