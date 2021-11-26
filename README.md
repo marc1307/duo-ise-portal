@@ -1,7 +1,7 @@
 # duo-ise-portal
 
 ## Requirements
- * Cisco Identity Services Engine (tested with 2.7 p2)
+ * Cisco Identity Services Engine (tested with 2.7 p2/p5)
  * Duo with Auth API
 
 ## How to run:
@@ -48,3 +48,13 @@ pip install -r requirements.txt
 export FLASK_APP=run.py
 flask run
 ```
+
+------
+
+## Cisco Bugs:
+------
+#### CSCvy04443: MNT REST API for ReAuth fails when using in distributed deployment (separate MnT) 
+https://bst.cloudapps.cisco.com/bugsearch/bug/CSCvy04443
+ISE 2.7 Patch 4
+This bugs prevents the portal from sending CoA Requests from ISE.
+-> Install Patch 5
