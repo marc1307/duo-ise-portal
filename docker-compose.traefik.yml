@@ -1,0 +1,56 @@
+version: '3.7'
+
+secrets:
+  cf_dns_api_token:
+    file: "./cloudflare-key.txt"
+
+services:
+  backend:
+    image: ghcr.io/marc1307/duo-ise-portal-backend:latest
+    container_name: "duo_backend"
+    restart: always
+    volumes:
+      - ./config.ini:/app/config.ini:ro
+    expose: 
+      - 8080
+
+  frontend:
+    image: ghcr.io/marc1307/duo-ise-portal-frontend:latest
+    container_name: "duo_frontend"
+    restart: always
+    depends_on: 
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.duo-ise-portal.rule=Host(`wifi.exmaple.com`)"
+      - "traefik.http.routers.duo-ise-portal.entrypoints=websecure"
+      - "traefik.http.routers.duo-ise-portal.tls.certresolver=cloudflare"
+
+  traefik:
+    image: "traefik:v2.5"
+    container_name: "duo_traefik"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https,wss"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.cloudflare.acme.email=le@wifi.exmaple.com"
+      - "--certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json"
+    secrets:
+      - "cf_dns_api_token"
+    environment:
+      - "CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token"
+    ports:
+      - "8443:443"
+    depends_on: 
+      - frontend
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
