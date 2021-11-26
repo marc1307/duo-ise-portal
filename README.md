@@ -52,9 +52,15 @@ flask run
 ------
 
 ## Cisco Bugs:
-------
-#### CSCvy04443: MNT REST API for ReAuth fails when using in distributed deployment (separate MnT) 
+#### CSCvy04443: MNT REST API for ReAuth fails when using in distributed deployment (separate MnT)
+```
 https://bst.cloudapps.cisco.com/bugsearch/bug/CSCvy04443
+
+Symptom:
 ISE 2.7 Patch 4
-This bugs prevents the portal from sending CoA Requests from ISE.
+This bugs prevents the portal from sending CoA requests from ISE.
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><remoteCoA requestType="reauth"><results>true</results></remoteCoA>
+
+Fix:
 -> Install Patch 5
+```
