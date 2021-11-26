@@ -3,6 +3,7 @@ from flask import request
 from flask_socketio import SocketIO, emit
 
 import json, time, os, sys
+from termcolor import cprint
 
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 
@@ -51,14 +52,14 @@ def webapp(resource):
 def ws_connect():
     session['socketsid'] = request.sid
     io.emit("connected", room=session['socketsid'])
-    print("websocket connected (ID: {})".format(request.sid))
+    cprint("websocket connected (ID: {})".format(request.sid), "red")
     io.emit("debug", request.sid, room=session['socketsid'])
 
 
 @io.on('init') # Send ISE Session ID
 def handle_init(data):
     # Regex for valid session ID /[0-9a-f]{24}/
-    print('init - received id: ' + data)
+    cprint('init - received id: ' + data, "red")
     sessionId = data
     IseSessionNotFound = True
     i = 0
@@ -67,7 +68,7 @@ def handle_init(data):
         if sessionInfo != False:
             IseSessionNotFound = False
             session['foundIseSession'] = True
-            print("------session['foundIseSession'] -> {}".format(session['foundIseSession']))
+            cprint("------session['foundIseSession'] -> {}".format(session['foundIseSession']), "red")
             session['ISE'] = sessionInfo
             io.emit("init", {"IseSessionFound": True}, room=session['socketsid'])
             io.emit("debug", {"data": {"iseSessionData": sessionInfo}}, room=session['socketsid'])
@@ -78,7 +79,7 @@ def handle_init(data):
 
 @io.on('auth') # Send ISE Session ID
 def handle_auth(data):
-    print('auth - received host: ' + data)
+    cprint('auth - received host: ' + data, "red")
     
     host = data ###### sanatize me
     session['host'] = host
@@ -115,7 +116,7 @@ def handle_auth(data):
                         session["AuthStatus"] = {}
                         while(not StopLoop):
                             r = duo.auth_status(txid)
-                            print(r)
+                            cprint(r, "red")
                             session["AuthStatus"]['result'] = r['response']['result']
                             io.emit('auth', {"module": "auth_status", 
                             "success": True, "state": r['response']['result'], "msg": r['response']['status_msg']}, room=session['socketsid'])
@@ -129,13 +130,13 @@ def handle_auth(data):
                                     else:
                                         io.emit('auth', {"module": "ise-addEig", "success": False}, room=session['socketsid'])
                             else:
-                                print("Request Allowed ({} -> {})".format(r['response']['status'], r['response']['status_msg']))
+                                cprint("Request Allowed ({} -> {})".format(r['response']['status'], r['response']['status_msg']), "red")
             break
 
 
 @io.on('auth_passcode') # Send ISE Session ID
 def handle_auth_passcode(data):
-    print('auth_passcode - received host: ' + data)
+    cprint('auth_passcode - received host: ' + data, "red")
 
     token = data
     

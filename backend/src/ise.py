@@ -1,5 +1,6 @@
 import requests, json
 from requests.auth import HTTPBasicAuth
+from termcolor import cprint
 
 from config import IseConfig
 
@@ -33,7 +34,7 @@ def getSessionInfo(IseSessionId):
 def findEndpointByMac(mac):
     cfg = IseConfig()
     url = "https://{}:9060/ers/config/endpoint?filter=mac.EQ.{}".format(cfg["host"], mac)
-    print("URL: "+url)
+    cprint("URL: "+url, "red")
     headers = {
         "Accept": "application/json"
     }
@@ -47,7 +48,7 @@ def getEndpointById(id):
     }
     url = "https://{}:9060/ers/config/endpoint/{}".format(cfg["host"], id)
     response = requests.get(url, auth=HTTPBasicAuth(cfg["username"], cfg["password"]), headers=headers, verify=False)
-    print(response.status_code)
+    cprint("getEndpointById(): "+response.status_code, "red")
     return response.text
 
 def updateEndpointGroup(id):
@@ -73,7 +74,7 @@ def sendReauthCoa(server, mac, reauthType="1"):
     cfg = IseConfig()
     url = "https://{host}/admin/API/mnt/CoA/Reauth/{server}/{mac}/{reauthType}".format(host=cfg["host"],server=server,mac=mac,reauthType=reauthType)
     response = requests.get(url, auth=HTTPBasicAuth(cfg["username"], cfg["password"]), verify=False)
-    print(response.text)
+    cprint(response.text, "red")
     return True
 
 def authorizeGuest(mac):

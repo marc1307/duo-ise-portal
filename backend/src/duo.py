@@ -1,4 +1,5 @@
 import duo_client, json
+from termcolor import cprint
 from config import DuoConfig
 
 def apiClient():
@@ -67,16 +68,16 @@ def eval_push(txid):
     while(not StopLoop):
         r = auth_status(txid)
         if (r['response']['result'] != "waiting"):
-            print("New Status")
+            cprint("New Status", "blue")
             StopLoop = True
             if (r['response']['result'] == "allow"):
-                print("Permit ({} -> {})".format(r['response']['status'], r['response']['status_msg']))
+                cprint("Permit ({} -> {})".format(r['response']['status'], r['response']['status_msg']), "blue")
                 return True
             else:
-                print("Deny ({} -> {})".format(r['response']['status'], r['response']['status_msg']))
+                cprint("Deny ({} -> {})".format(r['response']['status'], r['response']['status_msg']), "blue")
                 return False
         else:
-            print("Request Allowed ({} -> {})".format(r['response']['status'], r['response']['status_msg']))
+            cprint("Request Allowed ({} -> {})".format(r['response']['status'], r['response']['status_msg']), "blue")
             return True
 
 if __name__ == '__main__':
