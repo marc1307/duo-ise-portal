@@ -59,7 +59,7 @@ https://bst.cloudapps.cisco.com/bugsearch/bug/CSCvy04443
 Symptom:
 ISE 2.7 Patch 4
 This bugs prevents the portal from sending CoA requests from ISE.
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?><remoteCoA requestType="reauth"><results>true</results></remoteCoA>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><remoteCoA requestType="reauth"><results>false</results></remoteCoA>
 
 Fix:
 -> Install Patch 5
