@@ -62,7 +62,7 @@ def getEndpointGroupId(IseEndpointGroupName):
     url = "https://{}:9060/ers/config/endpointgroup/name/{}".format(cfg["host"], IseEndpointGroupName)
     response = requests.get(url, auth=HTTPBasicAuth(cfg["username"], cfg["password"]), headers=headers, verify=False)
     data = json.loads(response.text)
-    cprint("getEndpointGroupId(): "+str(response.status_code)+": {}".format(data['EndPointGroup']['id']), "red")
+    cprint("getEndpointGroupId(): {}".format(data['EndPointGroup']['id']), "red")
     return data['EndPointGroup']['id']
 
 
@@ -70,8 +70,8 @@ def updateEndpointGroup(id):
     cfg = IseConfig()
     if cfg["guestEndpointGroupId"] == "":
         cprint("updateEndpointGroup(): ISE EGP-Id not set. Requesting...", "red")
-        cfg["guestEndpointGroupId"] = getEndpointGroupId(cfg['guestEndpointGroup'])
-    cprint("updateEndpointGroup(): Using ISE EPG with id: {}".format(cfg["guestEndpointGroupId"]), "red")
+        cfg["guestEndpointGroupId"] = getEndpointGroupId(cfg["guestEndpointGroupName"])
+    cprint("updateEndpointGroup(): Using ISE EPG with id: {} ({})".format(cfg["guestEndpointGroupId"], cfg["guestEndpointGroupName"]), "red")
 
     headers = {
         "Accept": "application/json",
